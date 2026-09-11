@@ -2,7 +2,7 @@
 
 A working replica of the iOS 26 Calculator, built as a PWA, with a hidden force for magic routines. Opened from the Home Screen it looks and behaves like the real app.
 
-Started from [andyjermann/fakecalc](https://github.com/andyjermann/fakecalc), which was a static screenshot. This version is a real calculator with the same pixel geometry, measured from screenshots of the real app (iPhone 15 Pro Max).
+Started from [andyjermann/fakecalc](https://github.com/andyjermann/fakecalc), which was a static screenshot. This version is a real calculator with the same pixel geometry, measured from a screenshot of the real app on a 393 x 852 pt iPhone (15/16/17 Pro size). All sizes are expressed relative to screen width, so other models scale proportionally.
 
 ## The secret
 
@@ -50,4 +50,4 @@ netlify deploy --prod --dir .
 
 ## Calibrating for a different iPhone
 
-The layout is anchored to the safe areas, so it adapts, but button size and font sizes are tuned for the 15 Pro Max. To match another model exactly: take a screenshot of the real Calculator showing 0, drop it in `reference/`, and re-measure button size, gaps and the display glyph. The values live at the top of `style.css`.
+Everything is a multiple of `--u`, one point on a 393pt-wide screen, so the layout scales with width and is anchored to the safe areas. To check another model exactly: take a screenshot of the real Calculator showing 0, drop it in `reference/`, point `compare.html` at it, and adjust the numbers at the top of `style.css`. Convert screenshot pixels to points at `screen-width-in-pt / image-width-in-px`.

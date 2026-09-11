@@ -19,7 +19,7 @@
   <main class="calc">
     <!-- Top-left: history (clock). Long-press sets/clears the target. Minute hand flips when a target is set. -->
     <button class="round history" id="historyBtn" aria-label="History" type="button">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+      <svg viewBox="0 0 24 24" style="--w:22;--h:22" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="10.9"/>
         <line x1="12" y1="12" x2="12" y2="6"/>
         <line id="minuteHand" x1="12" y1="12" x2="17" y2="12"/>
@@ -27,7 +27,7 @@
     </button>
     <!-- Top-right: calculator mode. Long-press shows the target while held. -->
     <button class="round mode" id="modeBtn" aria-label="Calculator mode" type="button">
-      <svg viewBox="0 0 26.7 38.7" width="17.3" height="24.6">
+      <svg viewBox="0 0 26.7 38.7" style="--w:15.8;--h:22.5">
         <mask id="calcMask">
           <rect x="0" y="0" width="26.7" height="38.7" rx="5.5" fill="#fff"/>
           <rect x="4.2" y="4.6" width="18.3" height="8.4" rx="2" fill="#000"/>
@@ -47,7 +47,7 @@
 
     <div class="keypad" id="keypad">
       <button class="key fn" data-key="bs" type="button" aria-label="Delete">
-        <svg viewBox="0 0 40 34" width="41" height="35" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <svg viewBox="0 0 40 34" style="--w:37.5;--h:32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
           <path d="M1.6 17 L12.2 3.4 Q13.4 1.8 15.4 1.8 L34.2 1.8 Q38.4 1.8 38.4 6 L38.4 28 Q38.4 32.2 34.2 32.2 L15.4 32.2 Q13.4 32.2 12.2 30.6 Z"/>
           <line x1="19.5" y1="12" x2="29.5" y2="22"/>
           <line x1="29.5" y1="12" x2="19.5" y2="22"/>
@@ -55,14 +55,14 @@
       </button>
       <button class="key fn" data-key="clear" id="clearKey" type="button">AC</button>
       <button class="key fn" data-key="percent" type="button" aria-label="Percent">
-        <svg viewBox="0 0 29 30.3" width="36.5" height="38" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+        <svg viewBox="0 0 29 30.3" style="--w:33.4;--h:34.7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
           <ellipse cx="7.6" cy="8" rx="5.6" ry="6.4"/>
           <ellipse cx="21.4" cy="22.3" rx="5.6" ry="6.4"/>
           <line x1="24.4" y1="1.6" x2="4.6" y2="28.7"/>
         </svg>
       </button>
       <button class="key op" data-key="/" type="button" aria-label="Divide">
-        <svg viewBox="0 0 31 27.7" width="31" height="27.7" fill="currentColor" stroke="currentColor" stroke-linecap="round">
+        <svg viewBox="0 0 31 27.7" style="--w:28.3;--h:25.3" fill="currentColor" stroke="currentColor" stroke-linecap="round">
           <circle cx="15.5" cy="2.7" r="2.7" stroke="none"/>
           <circle cx="15.5" cy="25" r="2.7" stroke="none"/>
           <line x1="1.65" y1="13.85" x2="29.35" y2="13.85" stroke-width="3.3"/>
@@ -73,7 +73,7 @@
       <button class="key num" data-key="8" type="button">8</button>
       <button class="key num" data-key="9" type="button">9</button>
       <button class="key op" data-key="*" type="button" aria-label="Multiply">
-        <svg viewBox="0 0 25 25" width="25" height="25" fill="none" stroke="currentColor" stroke-width="3.3" stroke-linecap="round">
+        <svg viewBox="0 0 25 25" style="--w:22.9;--h:22.9" fill="none" stroke="currentColor" stroke-width="3.3" stroke-linecap="round">
           <line x1="1.65" y1="1.65" x2="23.35" y2="23.35"/>
           <line x1="23.35" y1="1.65" x2="1.65" y2="23.35"/>
         </svg>
@@ -83,7 +83,7 @@
       <button class="key num" data-key="5" type="button">5</button>
       <button class="key num" data-key="6" type="button">6</button>
       <button class="key op" data-key="-" type="button" aria-label="Subtract">
-        <svg viewBox="0 0 31 31" width="31" height="31" fill="none" stroke="currentColor" stroke-width="3.3" stroke-linecap="round">
+        <svg viewBox="0 0 31 31" style="--w:28.3;--h:28.3" fill="none" stroke="currentColor" stroke-width="3.3" stroke-linecap="round">
           <line x1="1.65" y1="15.5" x2="29.35" y2="15.5"/>
         </svg>
       </button>
@@ -92,14 +92,14 @@
       <button class="key num" data-key="2" type="button">2</button>
       <button class="key num" data-key="3" type="button">3</button>
       <button class="key op" data-key="+" type="button" aria-label="Add">
-        <svg viewBox="0 0 31 31" width="31" height="31" fill="none" stroke="currentColor" stroke-width="3.3" stroke-linecap="round">
+        <svg viewBox="0 0 31 31" style="--w:28.3;--h:28.3" fill="none" stroke="currentColor" stroke-width="3.3" stroke-linecap="round">
           <line x1="1.65" y1="15.5" x2="29.35" y2="15.5"/>
           <line x1="15.5" y1="1.65" x2="15.5" y2="29.35"/>
         </svg>
       </button>
 
       <button class="key num" data-key="negate" type="button" aria-label="Plus minus">
-        <svg viewBox="0 0 30 30" width="37.8" height="37.2" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <svg viewBox="0 0 30 30" style="--w:34.5;--h:34" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
           <line x1="7" y1="3" x2="7" y2="13"/>
           <line x1="2" y1="8" x2="12" y2="8"/>
           <line x1="21.5" y1="1.6" x2="7.5" y2="28.4"/>
@@ -109,7 +109,7 @@
       <button class="key num" data-key="0" type="button">0</button>
       <button class="key num" data-key="." type="button">.</button>
       <button class="key op" data-key="=" type="button" aria-label="Equals">
-        <svg viewBox="0 0 26 15.3" width="26" height="15.3" fill="none" stroke="currentColor" stroke-width="3.3" stroke-linecap="round">
+        <svg viewBox="0 0 26 15.3" style="--w:23.8;--h:14" fill="none" stroke="currentColor" stroke-width="3.3" stroke-linecap="round">
           <line x1="1.65" y1="1.65" x2="24.35" y2="1.65"/>
           <line x1="1.65" y1="13.65" x2="24.35" y2="13.65"/>
         </svg>

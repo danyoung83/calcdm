@@ -1,6 +1,8 @@
-/* Geometry measured from an iOS 26 Calculator screenshot on iPhone 15 Pro Max (430 x 932 pt).
-   CSS px == iOS pt. */
+/* Geometry measured from an iOS 26 Calculator screenshot on a 393 x 852 pt iPhone (15/16/17 Pro size).
+   CSS px == iOS pt. Everything scales with screen width via --u so other models stay proportional. */
 :root {
+  --u: calc(100vw / 393);   /* one iOS point on a 393pt-wide screen */
+
   --orange: #ff9201;
   --orange-dark: #fa8c00;
   --orange-press: #fcc78d;
@@ -14,15 +16,16 @@
   --white: #ffffff;
   --rim: rgba(255, 255, 255, 0.16);
 
-  --pad-x: 17.5px;
-  --gap-x: 9px;
-  --gap-y: 9px;
-  --btn: 92px;
+  --pad-x: calc(16 * var(--u));
+  --gap-x: calc(8 * var(--u));
+  --gap-y: calc(8 * var(--u));
+  --btn: calc((100vw - 2 * var(--pad-x) - 3 * var(--gap-x)) / 4);
+  --top-btn: calc(44 * var(--u));
   --safe-bottom: env(safe-area-inset-bottom, 34px);
   --safe-top: env(safe-area-inset-top, 59px);
-  --keypad-bottom: calc(var(--safe-bottom) + 34px);
-  --display-size: 71px;
-  --label-size: 38px;
+  --keypad-bottom: calc(var(--safe-bottom) + 28.6 * var(--u));
+  --display-size: calc(64 * var(--u));
+  --label-size: calc(35 * var(--u));
 }
 
 * { box-sizing: border-box; }
@@ -65,14 +68,20 @@ button {
   cursor: default;
 }
 
-button svg { display: block; pointer-events: none; }
+/* Inline SVG glyphs: each sets its own --w/--h in pt at the 393 scale */
+button svg {
+  display: block;
+  pointer-events: none;
+  width: calc(var(--w) * var(--u));
+  height: calc(var(--h) * var(--u));
+}
 
 /* Top corner buttons */
 .round {
   position: absolute;
-  top: calc(var(--safe-top) + 5.6px);
-  width: 48px;
-  height: 48px;
+  top: var(--safe-top);
+  width: var(--top-btn);
+  height: var(--top-btn);
   border-radius: 50%;
   background: var(--top);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
@@ -126,16 +135,16 @@ button svg { display: block; pointer-events: none; }
 .key.op.active.pressed { background: var(--white); }
 
 /* Text labels render slightly low relative to the reference; nudge them up */
-.key.num:not([data-key="negate"]), .key.fn[data-key="clear"] { padding-bottom: 0.8px; }
+.key.num:not([data-key="negate"]), .key.fn[data-key="clear"] { padding-bottom: calc(0.8 * var(--u)); }
 /* The backspace glyph's visual centre sits left of the button centre in iOS */
-.key[data-key="bs"] svg { transform: translateX(-1.4px); }
+.key[data-key="bs"] svg { transform: translateX(calc(-1.3 * var(--u))); }
 
 /* Display */
 .display {
   position: absolute;
   left: var(--pad-x);
-  right: 17.7px;
-  bottom: calc(var(--keypad-bottom) + 5 * var(--btn) + 4 * var(--gap-y) + 16.4px);
+  right: calc(16.2 * var(--u));
+  bottom: calc(var(--keypad-bottom) + 5 * var(--btn) + 4 * var(--gap-y) + 15.1 * var(--u));
   height: calc(var(--display-size) * 1.2);
   display: flex;
   align-items: flex-end;

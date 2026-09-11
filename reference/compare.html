@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <!-- Dev only: overlays a reference iOS screenshot on the live calculator.
-     ref=ios26 (default, full-screen screenshot) | ref=ios18 (status bar cropped)
+     ref=ios26 (default): 393x852 phone, full-screen screenshot
+     ref=ios18: 430x932 phone, status bar cropped
      mode=diff  -> difference blend (matching pixels go black)
      mode=half  -> reference at 50% opacity
-     mode=off   -> calculator only, with iPhone 15 Pro Max safe-area insets simulated -->
+     mode=off   -> calculator only, with safe-area insets simulated -->
 <html><head><meta charset="UTF-8"><title>compare</title>
 <style>
   body { margin: 0; background: #000; }
-  .stage { position: relative; width: 430px; height: 932px; overflow: hidden; }
-  iframe { position: absolute; inset: 0; width: 430px; height: 932px; border: 0; }
-  img { position: absolute; left: 0; width: 430px; pointer-events: none; }
+  .stage { position: relative; overflow: hidden; }
+  iframe { position: absolute; inset: 0; border: 0; }
+  img { position: absolute; left: 0; pointer-events: none; }
   .diff img { mix-blend-mode: difference; }
   .half img { opacity: 0.5; }
   .off img { display: none; }
@@ -23,12 +24,16 @@
   const q = new URLSearchParams(location.search);
   const mode = q.get('mode') || 'diff';
   const ref = q.get('ref') || 'ios26';
-  const img = document.getElementById('ref');
-  if (ref === 'ios18') { img.src = 'calc-zero.jpg'; img.style.top = '45.67px'; img.style.height = '886.33px'; }
-  else { img.src = 'ios26-calc.jpg'; img.style.top = '0'; img.style.height = '932px'; }
-  document.getElementById('stage').className = 'stage ' + mode;
-  document.getElementById('f').addEventListener('load', () => {
-    const d = document.getElementById('f').contentDocument.documentElement.style;
+  const img = document.getElementById('ref'), stage = document.getElementById('stage'), f = document.getElementById('f');
+  let W, H;
+  if (ref === 'ios18') { W = 430; H = 932; img.src = 'calc-zero.jpg'; img.style.top = '45.67px'; img.style.height = '886.33px'; }
+  else { W = 393; H = 852; img.src = 'ios26-calc.jpg'; img.style.top = '0'; img.style.height = H + 'px'; }
+  img.style.width = W + 'px';
+  stage.style.width = f.style.width = W + 'px';
+  stage.style.height = f.style.height = H + 'px';
+  stage.className = 'stage ' + mode;
+  f.addEventListener('load', () => {
+    const d = f.contentDocument.documentElement.style;
     d.setProperty('--safe-bottom', '34px');
     d.setProperty('--safe-top', '59px');
   });

@@ -12,7 +12,7 @@
   keypad.querySelectorAll('.key.op').forEach((b) => { opKeys[b.dataset.key] = b; });
 
   const MAX_DIGITS = 9;
-  const BASE_FONT = 71;
+  const BASE_FONT = 64;
   const MIN_FONT = 30;
   const LONG_PRESS_MS = 700;
   const STORAGE_KEY = 'calc.target';
@@ -104,11 +104,12 @@
   }
 
   function fitDisplay() {
-    textEl.style.fontSize = BASE_FONT + 'px';
+    textEl.style.fontSize = '';   // back to the CSS size, which scales with screen width
+    const base = parseFloat(getComputedStyle(textEl).fontSize) || BASE_FONT;
     const avail = displayEl.clientWidth;
     const w = textEl.scrollWidth;
     if (w > avail) {
-      const size = Math.max(MIN_FONT, Math.floor(BASE_FONT * avail / w));
+      const size = Math.max(MIN_FONT, Math.floor(base * avail / w));
       textEl.style.fontSize = size + 'px';
     }
   }
