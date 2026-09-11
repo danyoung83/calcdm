@@ -5,14 +5,14 @@
   const displayEl = document.getElementById('display');
   const textEl = document.getElementById('displayText');
   const keypad = document.getElementById('keypad');
-  const clearKey = document.getElementById('clearKey');
   const historyBtn = document.getElementById('historyBtn');
-  const setDot = document.getElementById('setDot');
+  const modeBtn = document.getElementById('modeBtn');
+  const minuteHand = document.getElementById('minuteHand');
   const opKeys = {};
   keypad.querySelectorAll('.key.op').forEach((b) => { opKeys[b.dataset.key] = b; });
 
   const MAX_DIGITS = 9;
-  const BASE_FONT = 79;
+  const BASE_FONT = 71;
   const MIN_FONT = 30;
   const LONG_PRESS_MS = 700;
   const STORAGE_KEY = 'calc.target';
@@ -22,7 +22,6 @@
   let tokens = [];
   let entry = null;        // string being typed ("12.5", "-0"), or null
   let shown = 0;           // number shown when entry is null
-  let cleared = true;      // AC (true) vs C (false) label state
   let lastOp = null;       // for repeated "="
   let lastOperand = null;
   let activeOp = null;     // highlighted operator key
@@ -117,7 +116,6 @@
   function render() {
     textEl.textContent = entry !== null ? formatEntry(entry) : formatNumber(shown);
     fitDisplay();
-    clearKey.textContent = cleared ? 'AC' : 'C';
   }
 
   function setActiveOp(op) {
@@ -130,7 +128,6 @@
     tokens = [];
     entry = null;
     shown = 0;
-    cleared = true;
     lastOp = null;
     lastOperand = null;
     setActiveOp(null);
@@ -141,7 +138,6 @@
   // ---------- Input handlers ----------
   function inputDigit(d) {
     setActiveOp(null);
-    cleared = false;
     if (entry === null) {
       entry = d === '.' ? '0.' : d;
     } else {
@@ -156,7 +152,6 @@
   }
 
   function inputOperator(op) {
-    cleared = false;
     lastOp = null;
     const last = tokens[tokens.length - 1];
     if (entry === null && typeof last === 'string') {
@@ -180,7 +175,6 @@
   }
 
   function inputEquals() {
-    cleared = false;
     setActiveOp(null);
     if (secret.armed) { finishForce(); return; }
 
@@ -203,7 +197,6 @@
   }
 
   function inputNegate() {
-    cleared = false;
     if (entry !== null) {
       entry = entry[0] === '-' ? entry.slice(1) : '-' + entry;
     } else {
@@ -214,7 +207,6 @@
   }
 
   function inputPercent() {
-    cleared = false;
     const v = currentValue();
     const last = tokens[tokens.length - 1];
     let result;
@@ -229,12 +221,7 @@
   }
 
   function inputClear() {
-    if (cleared) { resetAll(); return; }
-    entry = null;
-    shown = 0;
-    cleared = true;
-    if (secret.armed) secret.idx = 0;
-    render();
+    resetAll();
   }
 
   function backspace() {
@@ -257,20 +244,25 @@
       secret.target = parseFloat(stored);
       if (Number.isNaN(secret.target)) secret.target = null;
     }
-    setDot.classList.toggle('on', secret.target !== null);
+    showTell();
+  }
+
+  // The tell: the clock's minute hand points to 3 normally, to 9 when a target is set.
+  function showTell() {
+    minuteHand.setAttribute('x2', secret.target !== null ? '7' : '17');
   }
 
   function setTarget(n) {
     if (Number.isNaN(n) || n === null) return clearTarget();
     secret.target = round9(n);
     localStorage.setItem(STORAGE_KEY, String(secret.target));
-    setDot.classList.add('on');
+    showTell();
   }
 
   function clearTarget() {
     secret.target = null;
     localStorage.removeItem(STORAGE_KEY);
-    setDot.classList.remove('on');
+    showTell();
   }
 
   function disarm() {
@@ -297,6 +289,10 @@
     inputDigit(ch);
   }
 
+  function forceEntryComplete() {
+    return secret.armed && secret.idx >= secret.seq.length;
+  }
+
   function finishForce() {
     const t = secret.target;
     tokens = [];
@@ -310,23 +306,49 @@
   }
 
   // ---------- Dispatch ----------
+  // Handles key presses from clicks / keyboard. While the force is armed and digits are still
+  // owed, taps are consumed by the document-level tap detector below, not here.
   function press(key) {
     if (secret.armed) {
+      if (!forceEntryComplete()) return;
       if (key === '=') return inputEquals();
       if (key === 'clear') return inputClear();
-      return feedForcedChar();
+      return;
     }
     switch (key) {
       case 'clear': return inputClear();
+      case 'bs': return backspace();
       case 'negate': return inputNegate();
       case 'percent': return inputPercent();
       case '+': case '-': case '*': case '/': return inputOperator(key);
       case '=': return inputEquals();
-      case 'mode': return;
       default:
         if (/^[0-9.]$/.test(key)) return inputDigit(key);
     }
   }
+
+  // ---------- Whole-screen tap detection while armed ----------
+  // One digit per tap gesture, however many fingers land and wherever they land.
+  const activePointers = new Set();
+  let lastFeedAt = 0;
+  function onAnyPointerDown(e) {
+    const wasIdle = activePointers.size === 0;
+    activePointers.add(e.pointerId);
+    if (!secret.armed || forceEntryComplete()) return;
+    const now = performance.now();
+    if (wasIdle && now - lastFeedAt > 150) {
+      lastFeedAt = now;
+      feedForcedChar();
+    }
+  }
+  function onAnyPointerEnd(e) { activePointers.delete(e.pointerId); }
+  document.addEventListener('pointerdown', onAnyPointerDown, { capture: true });
+  document.addEventListener('pointerup', onAnyPointerEnd, { capture: true });
+  document.addEventListener('pointercancel', onAnyPointerEnd, { capture: true });
+  // Safety net: if a pointerup ever goes missing, an all-fingers-up touchend resets the tracker.
+  document.addEventListener('touchend', (e) => { if (e.touches.length === 0) activePointers.clear(); }, { capture: true });
+  document.addEventListener('touchcancel', (e) => { if (e.touches.length === 0) activePointers.clear(); }, { capture: true });
+  document.addEventListener('visibilitychange', () => activePointers.clear());
 
   // ---------- Events ----------
   keypad.addEventListener('pointerdown', (e) => {
@@ -356,27 +378,46 @@
     if (!swipeStart) return;
     const dx = e.clientX - swipeStart.x, dy = e.clientY - swipeStart.y;
     swipeStart = null;
+    if (secret.armed) return;
     if (Math.abs(dx) > 30 && Math.abs(dy) < 50) backspace();
   });
 
-  // Long-press the history icon: sets the number on screen as the target
-  // (then clears like AC). Long-press with 0 on screen clears the target.
-  let pressTimer = null;
-  let longFired = false;
-  historyBtn.addEventListener('pointerdown', () => {
-    longFired = false;
-    pressTimer = setTimeout(() => {
-      longFired = true;
-      const v = currentValue();
-      if (v !== 0) setTarget(v); else clearTarget();
-      resetAll();
-    }, LONG_PRESS_MS);
+  // Long-press helper for the two round buttons.
+  function longPress(btn, onFire, onRelease) {
+    let timer = null;
+    let fired = false;
+    btn.addEventListener('pointerdown', () => {
+      btn.classList.add('pressed');
+      fired = false;
+      timer = setTimeout(() => { fired = true; onFire(); }, LONG_PRESS_MS);
+    });
+    const end = () => {
+      btn.classList.remove('pressed');
+      clearTimeout(timer); timer = null;
+      if (fired && onRelease) onRelease();
+      fired = false;
+    };
+    btn.addEventListener('pointerup', end);
+    btn.addEventListener('pointercancel', end);
+    btn.addEventListener('pointerleave', end);
+    btn.addEventListener('contextmenu', (e) => e.preventDefault());
+  }
+
+  // History (clock): long-press sets the number on screen as the target and clears the display.
+  // Long-press with 0 on screen clears the target.
+  longPress(historyBtn, () => {
+    if (secret.armed) return;
+    const v = currentValue();
+    if (v !== 0) setTarget(v); else clearTarget();
+    resetAll();
   });
-  const cancelLong = () => { clearTimeout(pressTimer); pressTimer = null; };
-  historyBtn.addEventListener('pointerup', cancelLong);
-  historyBtn.addEventListener('pointercancel', cancelLong);
-  historyBtn.addEventListener('pointerleave', cancelLong);
-  historyBtn.addEventListener('contextmenu', (e) => e.preventDefault());
+
+  // Mode (calculator icon): hold to peek at the target; the display restores on release.
+  longPress(modeBtn, () => {
+    if (secret.armed || secret.target === null) return;
+    textEl.textContent = formatNumber(secret.target);
+    fitDisplay();
+  }, () => render());
 
   document.addEventListener('contextmenu', (e) => e.preventDefault());
   document.addEventListener('gesturestart', (e) => e.preventDefault());
@@ -386,8 +427,7 @@
   document.addEventListener('keydown', (e) => {
     const map = { Enter: '=', '=': '=', Backspace: 'bs', Escape: 'clear', '%': 'percent', x: '*', X: '*' };
     const key = map[e.key] || e.key;
-    if (key === 'bs') return backspace();
-    if (/^[0-9.+\-*\/=]$/.test(key) || key === 'clear' || key === 'percent') press(key);
+    if (/^[0-9.+\-*\/=]$/.test(key) || key === 'clear' || key === 'percent' || key === 'bs') press(key);
   });
 
   window.addEventListener('resize', fitDisplay);

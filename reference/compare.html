@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<!-- Dev only: overlays the reference iOS screenshot on the live calculator.
+<!-- Dev only: overlays a reference iOS screenshot on the live calculator.
+     ref=ios26 (default, full-screen screenshot) | ref=ios18 (status bar cropped)
      mode=diff  -> difference blend (matching pixels go black)
      mode=half  -> reference at 50% opacity
      mode=off   -> calculator only, with iPhone 15 Pro Max safe-area insets simulated -->
@@ -8,7 +9,7 @@
   body { margin: 0; background: #000; }
   .stage { position: relative; width: 430px; height: 932px; overflow: hidden; }
   iframe { position: absolute; inset: 0; width: 430px; height: 932px; border: 0; }
-  img { position: absolute; left: 0; top: 45.67px; width: 430px; height: 886.33px; pointer-events: none; }
+  img { position: absolute; left: 0; width: 430px; pointer-events: none; }
   .diff img { mix-blend-mode: difference; }
   .half img { opacity: 0.5; }
   .off img { display: none; }
@@ -16,10 +17,15 @@
 <body>
 <div class="stage" id="stage">
   <iframe id="f" src="../index.html?nosw=1"></iframe>
-  <img src="calc-zero.jpg" alt="">
+  <img id="ref" src="" alt="">
 </div>
 <script>
-  const mode = new URLSearchParams(location.search).get('mode') || 'diff';
+  const q = new URLSearchParams(location.search);
+  const mode = q.get('mode') || 'diff';
+  const ref = q.get('ref') || 'ios26';
+  const img = document.getElementById('ref');
+  if (ref === 'ios18') { img.src = 'calc-zero.jpg'; img.style.top = '45.67px'; img.style.height = '886.33px'; }
+  else { img.src = 'ios26-calc.jpg'; img.style.top = '0'; img.style.height = '932px'; }
   document.getElementById('stage').className = 'stage ' + mode;
   document.getElementById('f').addEventListener('load', () => {
     const d = document.getElementById('f').contentDocument.documentElement.style;

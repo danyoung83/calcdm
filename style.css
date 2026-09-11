@@ -1,22 +1,27 @@
-/* Geometry measured from an iOS 18 Calculator screenshot on iPhone 15 Pro Max (430 x 932 pt).
+/* Geometry measured from an iOS 26 Calculator screenshot on iPhone 15 Pro Max (430 x 932 pt).
    CSS px == iOS pt. */
 :root {
-  --orange: #ff9f0a;
+  --orange: #ff9201;
+  --orange-dark: #fa8c00;
   --orange-press: #fcc78d;
-  --fn: #5c5c5f;
+  --fn: #5e5e5e;
+  --fn-dark: #525252;
   --fn-press: #a5a5a8;
-  --num: #2a2a2c;
+  --num: #343434;
+  --num-dark: #2e2e2e;
   --num-press: #737373;
+  --top: #121212;
   --white: #ffffff;
+  --rim: rgba(255, 255, 255, 0.16);
 
-  --pad-x: 16px;
-  --gap-x: 8px;
-  --gap-y: 8.5px;
-  --btn-h: 89.5px;
+  --pad-x: 17.5px;
+  --gap-x: 9px;
+  --gap-y: 9px;
+  --btn: 92px;
   --safe-bottom: env(safe-area-inset-bottom, 34px);
   --safe-top: env(safe-area-inset-top, 59px);
-  --keypad-bottom: calc(var(--safe-bottom) + 28.3px);
-  --display-size: 79px;
+  --keypad-bottom: calc(var(--safe-bottom) + 34px);
+  --display-size: 71px;
   --label-size: 38px;
 }
 
@@ -62,19 +67,24 @@ button {
 
 button svg { display: block; pointer-events: none; }
 
-/* Top-left history icon */
-.history {
+/* Top corner buttons */
+.round {
   position: absolute;
-  left: 19px;
-  top: calc(var(--safe-top) + 17.7px);
-  width: 22.3px;
-  height: 16.3px;
-  color: var(--orange);
-  /* bigger hit area */
-  padding: 14px;
-  margin: -14px;
-  box-sizing: content-box;
+  top: calc(var(--safe-top) + 5.6px);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--top);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.28s ease-out;
 }
+.round.history { left: var(--pad-x); }
+.round.mode { right: var(--pad-x); }
+.round.pressed { transition: none; background: #3a3a3a; }
 
 /* Keypad, anchored to the bottom */
 .keypad {
@@ -84,14 +94,14 @@ button svg { display: block; pointer-events: none; }
   bottom: var(--keypad-bottom);
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: var(--btn-h);
+  grid-auto-rows: var(--btn);
   column-gap: var(--gap-x);
   row-gap: var(--gap-y);
 }
 
 .key {
-  height: var(--btn-h);
-  border-radius: 999px;
+  height: var(--btn);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -99,11 +109,12 @@ button svg { display: block; pointer-events: none; }
   font-weight: 400;
   line-height: 1;
   color: var(--white);
+  box-shadow: inset 0 0 0 1px var(--rim);
   transition: background-color 0.28s ease-out, color 0.28s ease-out;
 }
-.key.num { background: var(--num); }
-.key.fn  { background: var(--fn); }
-.key.op  { background: var(--orange); }
+.key.num { background: linear-gradient(160deg, var(--num) 55%, var(--num-dark)); }
+.key.fn  { background: linear-gradient(160deg, var(--fn) 45%, var(--fn-dark)); }
+.key.op  { background: linear-gradient(180deg, var(--orange) 60%, var(--orange-dark)); }
 
 .key.pressed { transition: none; }
 .key.num.pressed { background: var(--num-press); }
@@ -114,15 +125,17 @@ button svg { display: block; pointer-events: none; }
 .key.op.active { background: var(--white); color: var(--orange); }
 .key.op.active.pressed { background: var(--white); }
 
-/* Text labels render 0.8px low relative to the reference; nudge them up */
-.key.num:not([data-key="mode"]), .key.fn[data-key="clear"] { padding-bottom: 1.6px; }
+/* Text labels render slightly low relative to the reference; nudge them up */
+.key.num:not([data-key="negate"]), .key.fn[data-key="clear"] { padding-bottom: 0.8px; }
+/* The backspace glyph's visual centre sits left of the button centre in iOS */
+.key[data-key="bs"] svg { transform: translateX(-1.4px); }
 
 /* Display */
 .display {
   position: absolute;
   left: var(--pad-x);
-  right: 16.3px;
-  bottom: calc(var(--keypad-bottom) + 5 * var(--btn-h) + 4 * var(--gap-y) + 18.7px);
+  right: 17.7px;
+  bottom: calc(var(--keypad-bottom) + 5 * var(--btn) + 4 * var(--gap-y) + 16.4px);
   height: calc(var(--display-size) * 1.2);
   display: flex;
   align-items: flex-end;
@@ -138,16 +151,3 @@ button svg { display: block; pointer-events: none; }
   transform-origin: right bottom;
   will-change: font-size;
 }
-
-/* Tiny marker: visible only if you know to look. Shown while a target is set. */
-.set-dot {
-  position: absolute;
-  left: 22px;
-  bottom: calc(var(--safe-bottom) - 22px);
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #2a2a2c;
-  display: none;
-}
-.set-dot.on { display: block; }

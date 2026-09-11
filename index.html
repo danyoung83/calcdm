@@ -17,14 +17,27 @@
 </head>
 <body>
   <main class="calc">
-    <button class="history" id="historyBtn" aria-label="History" type="button">
-      <svg viewBox="0 0 22.3 16.3" width="22.3" height="16.3" fill="none" stroke="currentColor" stroke-linecap="round">
-        <circle cx="1.4" cy="1.4" r="1.4" fill="currentColor" stroke="none"/>
-        <circle cx="1.4" cy="8.15" r="1.4" fill="currentColor" stroke="none"/>
-        <circle cx="1.4" cy="14.9" r="1.4" fill="currentColor" stroke="none"/>
-        <line x1="6.5" y1="1.4" x2="21.1" y2="1.4" stroke-width="2.4"/>
-        <line x1="6.5" y1="8.15" x2="21.1" y2="8.15" stroke-width="2.4"/>
-        <line x1="6.5" y1="14.9" x2="21.1" y2="14.9" stroke-width="2.4"/>
+    <!-- Top-left: history (clock). Long-press sets/clears the target. Minute hand flips when a target is set. -->
+    <button class="round history" id="historyBtn" aria-label="History" type="button">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10.9"/>
+        <line x1="12" y1="12" x2="12" y2="6"/>
+        <line id="minuteHand" x1="12" y1="12" x2="17" y2="12"/>
+      </svg>
+    </button>
+    <!-- Top-right: calculator mode. Long-press shows the target while held. -->
+    <button class="round mode" id="modeBtn" aria-label="Calculator mode" type="button">
+      <svg viewBox="0 0 26.7 38.7" width="17.3" height="24.6">
+        <mask id="calcMask">
+          <rect x="0" y="0" width="26.7" height="38.7" rx="5.5" fill="#fff"/>
+          <rect x="4.2" y="4.6" width="18.3" height="8.4" rx="2" fill="#000"/>
+          <g fill="#000">
+            <circle cx="7.1" cy="19.2" r="2.1"/><circle cx="13.35" cy="19.2" r="2.1"/><circle cx="19.6" cy="19.2" r="2.1"/>
+            <circle cx="7.1" cy="26.2" r="2.1"/><circle cx="13.35" cy="26.2" r="2.1"/><circle cx="19.6" cy="26.2" r="2.1"/>
+            <circle cx="7.1" cy="33.2" r="2.1"/><circle cx="13.35" cy="33.2" r="2.1"/><circle cx="19.6" cy="33.2" r="2.1"/>
+          </g>
+        </mask>
+        <rect x="0" y="0" width="26.7" height="38.7" rx="5.5" fill="currentColor" mask="url(#calcMask)"/>
       </svg>
     </button>
 
@@ -33,17 +46,16 @@
     </div>
 
     <div class="keypad" id="keypad">
-      <button class="key fn" data-key="clear" id="clearKey" type="button">AC</button>
-      <button class="key fn" data-key="negate" type="button" aria-label="Plus minus">
-        <svg viewBox="0 0 30 30" width="30" height="30" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
-          <line x1="7" y1="3" x2="7" y2="13"/>
-          <line x1="2" y1="8" x2="12" y2="8"/>
-          <line x1="21.5" y1="1.6" x2="7.5" y2="28.4"/>
-          <line x1="19" y1="24" x2="28.5" y2="24"/>
+      <button class="key fn" data-key="bs" type="button" aria-label="Delete">
+        <svg viewBox="0 0 40 34" width="41" height="35" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1.6 17 L12.2 3.4 Q13.4 1.8 15.4 1.8 L34.2 1.8 Q38.4 1.8 38.4 6 L38.4 28 Q38.4 32.2 34.2 32.2 L15.4 32.2 Q13.4 32.2 12.2 30.6 Z"/>
+          <line x1="19.5" y1="12" x2="29.5" y2="22"/>
+          <line x1="29.5" y1="12" x2="19.5" y2="22"/>
         </svg>
       </button>
+      <button class="key fn" data-key="clear" id="clearKey" type="button">AC</button>
       <button class="key fn" data-key="percent" type="button" aria-label="Percent">
-        <svg viewBox="0 0 29 30.3" width="29" height="30.3" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+        <svg viewBox="0 0 29 30.3" width="36.5" height="38" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
           <ellipse cx="7.6" cy="8" rx="5.6" ry="6.4"/>
           <ellipse cx="21.4" cy="22.3" rx="5.6" ry="6.4"/>
           <line x1="24.4" y1="1.6" x2="4.6" y2="28.7"/>
@@ -86,18 +98,12 @@
         </svg>
       </button>
 
-      <button class="key num" data-key="mode" type="button" aria-label="Calculator mode">
-        <svg viewBox="0 0 26.7 38.7" width="26.7" height="38.7">
-          <mask id="calcMask">
-            <rect x="0" y="0" width="26.7" height="38.7" rx="5.5" fill="#fff"/>
-            <rect x="4.2" y="4.6" width="18.3" height="8.4" rx="2" fill="#000"/>
-            <g fill="#000">
-              <circle cx="7.1" cy="19.2" r="2.1"/><circle cx="13.35" cy="19.2" r="2.1"/><circle cx="19.6" cy="19.2" r="2.1"/>
-              <circle cx="7.1" cy="26.2" r="2.1"/><circle cx="13.35" cy="26.2" r="2.1"/><circle cx="19.6" cy="26.2" r="2.1"/>
-              <circle cx="7.1" cy="33.2" r="2.1"/><circle cx="13.35" cy="33.2" r="2.1"/><circle cx="19.6" cy="33.2" r="2.1"/>
-            </g>
-          </mask>
-          <rect x="0" y="0" width="26.7" height="38.7" rx="5.5" fill="currentColor" mask="url(#calcMask)"/>
+      <button class="key num" data-key="negate" type="button" aria-label="Plus minus">
+        <svg viewBox="0 0 30 30" width="37.8" height="37.2" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="7" y1="3" x2="7" y2="13"/>
+          <line x1="2" y1="8" x2="12" y2="8"/>
+          <line x1="21.5" y1="1.6" x2="7.5" y2="28.4"/>
+          <line x1="19" y1="24" x2="28.5" y2="24"/>
         </svg>
       </button>
       <button class="key num" data-key="0" type="button">0</button>
@@ -109,8 +115,6 @@
         </svg>
       </button>
     </div>
-
-    <div class="set-dot" id="setDot" aria-hidden="true"></div>
   </main>
   <script src="app.js"></script>
 </body>
