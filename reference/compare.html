@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!-- Dev only: overlays the reference iOS screenshot on the live calculator.
+     mode=diff  -> difference blend (matching pixels go black)
+     mode=half  -> reference at 50% opacity
+     mode=off   -> calculator only, with iPhone 15 Pro Max safe-area insets simulated -->
+<html><head><meta charset="UTF-8"><title>compare</title>
+<style>
+  body { margin: 0; background: #000; }
+  .stage { position: relative; width: 430px; height: 932px; overflow: hidden; }
+  iframe { position: absolute; inset: 0; width: 430px; height: 932px; border: 0; }
+  img { position: absolute; left: 0; top: 45.67px; width: 430px; height: 886.33px; pointer-events: none; }
+  .diff img { mix-blend-mode: difference; }
+  .half img { opacity: 0.5; }
+  .off img { display: none; }
+</style></head>
+<body>
+<div class="stage" id="stage">
+  <iframe id="f" src="../index.html?nosw=1"></iframe>
+  <img src="calc-zero.jpg" alt="">
+</div>
+<script>
+  const mode = new URLSearchParams(location.search).get('mode') || 'diff';
+  document.getElementById('stage').className = 'stage ' + mode;
+  document.getElementById('f').addEventListener('load', () => {
+    const d = document.getElementById('f').contentDocument.documentElement.style;
+    d.setProperty('--safe-bottom', '34px');
+    d.setProperty('--safe-top', '59px');
+  });
+</script>
+</body></html>

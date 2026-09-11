@@ -1,32 +1,51 @@
 # Magic Calculator
 
-A fake iPhone Calculator "app" for magic routines. It's a fullscreen, untouchable image that mimics the real iOS Calculator showing `0`. Add it to your Home Screen and it's indistinguishable from the real thing.
+A working replica of the iOS 18 Calculator, built as a PWA, with a hidden force for magic routines. Opened from the Home Screen it looks and behaves like the real app.
 
-Based on [andyjermann/fakecalc](https://github.com/andyjermann/fakecalc), copied as-is so it can be tweaked here.
+Started from [andyjermann/fakecalc](https://github.com/andyjermann/fakecalc), which was a static screenshot. This version is a real calculator with the same pixel geometry, measured from that screenshot (iPhone 15 Pro Max).
 
-## Files
+## The secret
 
-- `index.html` — fullscreen wrapper, no zoom, no selection, no touch callout
-- `calc-zero.jpg` — screenshot of the iOS Calculator (cropped to remove the status bar). Sized for iPhone 15 Pro Max
-- `calc-icon.png` — Home Screen icon
-- `netlify.toml` — publishes the repo root, no build step
+**Set the target number**
+1. Type the number you want to force.
+2. Long-press (hold ~0.7s) the orange history icon in the top left. The display clears to 0.
+3. A tiny dark grey dot appears at the bottom left, just above the home indicator. That's how you know a target is set.
+
+To clear the target, long-press the history icon while the display shows 0. The dot disappears.
+
+You can also set it via URL, handy from an iOS Shortcut: `https://your-site.netlify.app/?t=1234`. The target survives relaunching the app until it's used or cleared.
+
+**Perform**
+1. Let the spectator type and calculate whatever they like.
+2. When you want to end, press **+ twice** (or **− twice**). Nothing visible changes. The app now knows the difference between what's on screen and the target.
+3. From now on, every key tap enters the next digit of that difference, regardless of which key is tapped. Once the difference is fully entered, extra taps do nothing.
+4. Press **=**. The target appears.
+
+After the force fires, the target is cleared and the app is a normal calculator again.
+
+Use **+ +** when the running total is below the target and **− −** when it's above. If you pick the wrong direction the maths on screen won't add up, though **=** still shows the target.
 
 ## Deploy to Netlify
 
-1. Netlify → **Add new site → Import an existing project → GitHub**
-2. Pick this repo. Build command: leave empty. Publish directory: `.` (already set in `netlify.toml`)
-3. Deploy
+1. Netlify → **Add new site → Import an existing project → GitHub**, pick this repo.
+2. Build command: empty. Publish directory: `.` (already set in `netlify.toml`).
+3. Deploy.
 
 ## Add to Home Screen (iPhone)
 
-1. Open the Netlify URL in **Safari**
-2. **Share → Add to Home Screen**
-3. Name it **Calculator** and tap **Add**
+1. Open the Netlify URL in **Safari**.
+2. **Share → Add to Home Screen**. Name it **Calculator**.
+3. Launch it from the Home Screen once while online so the service worker caches it. It then works offline.
 
-## Fit it to your own phone
+## Files
 
-The screenshot is device-specific. To make it match yours:
+- `index.html` — markup, with the operator and icon glyphs as inline SVG sized to the reference
+- `style.css` — all geometry in CSS px (equal to iOS pt); safe-area insets keep it aligned under the status bar and home indicator
+- `app.js` — calculator engine (iOS precedence, %, ±, repeated =, swipe-to-delete on the display) and the force logic
+- `manifest.webmanifest`, `sw.js` — PWA install and offline cache
+- `reference/calc-zero.jpg` — the original iOS screenshot used for calibration
+- `reference/compare.html` — dev page that overlays the reference on the live app (`?mode=diff|half|off`)
 
-1. Open the real Calculator app showing a clean `0`, take a screenshot
-2. Crop off the status bar (time, battery) in Photos → Edit
-3. Replace `calc-zero.jpg` with it and push
+## Calibrating for a different iPhone
+
+The layout is anchored to the safe areas, so it adapts, but button height and font sizes are tuned for the 15 Pro Max. To match another model exactly: take a screenshot of the real Calculator showing 0, drop it in `reference/`, and re-measure button size, gaps and the display glyph. The values live at the top of `style.css`.
