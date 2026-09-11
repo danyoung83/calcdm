@@ -21,9 +21,7 @@
   --gap-y: calc(8 * var(--u));
   --btn: calc((100vw - 2 * var(--pad-x) - 3 * var(--gap-x)) / 4);
   --top-btn: calc(44 * var(--u));
-  --safe-bottom: env(safe-area-inset-bottom, 34px);
   --safe-top: env(safe-area-inset-top, 59px);
-  --keypad-bottom: calc(var(--safe-bottom) + 28.6 * var(--u));
   --display-size: calc(64 * var(--u));
   --label-size: calc(35 * var(--u));
 }
@@ -95,12 +93,14 @@ button svg {
 .round.mode { right: var(--pad-x); }
 .round.pressed { transition: none; background: #3a3a3a; }
 
-/* Keypad, anchored to the bottom */
+/* Keypad. Anchored from the top: in a home-screen web app iOS reports a viewport that is
+   shorter than the screen by the status-bar height, so bottom anchoring lands too high.
+   The screen aspect ratio is the same on all recent iPhones, so top offsets in --u scale fine. */
 .keypad {
   position: absolute;
   left: var(--pad-x);
   right: var(--pad-x);
-  bottom: var(--keypad-bottom);
+  top: calc(336.9 * var(--u));
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-auto-rows: var(--btn);
@@ -144,7 +144,7 @@ button svg {
   position: absolute;
   left: var(--pad-x);
   right: calc(16.2 * var(--u));
-  bottom: calc(var(--keypad-bottom) + 5 * var(--btn) + 4 * var(--gap-y) + 15.1 * var(--u));
+  top: calc(247.1 * var(--u));   /* puts the digit baseline at 314pt on iOS Safari */
   height: calc(var(--display-size) * 1.2);
   display: flex;
   align-items: flex-end;
