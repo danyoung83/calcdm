@@ -248,9 +248,16 @@
     showTell();
   }
 
-  // The tell: the clock's minute hand points to 3 normally, to 9 when a target is set.
+  // The tell, on the clock's minute hand:
+  //   3 o'clock  nothing set
+  //   9 o'clock  target set (and while digits are still being fed)
+  //   6 o'clock  all delta digits entered, ready for =
   function showTell() {
-    minuteHand.setAttribute('x2', secret.target !== null ? '7' : '17');
+    let x2 = 17, y2 = 12;                                   // 3 o'clock
+    if (secret.armed && secret.idx >= secret.seq.length) { x2 = 12; y2 = 17; }   // 6 o'clock
+    else if (secret.target !== null) { x2 = 7; y2 = 12; }  // 9 o'clock
+    minuteHand.setAttribute('x2', String(x2));
+    minuteHand.setAttribute('y2', String(y2));
   }
 
   function setTarget(n) {
@@ -270,6 +277,7 @@
     secret.armed = false;
     secret.seq = '';
     secret.idx = 0;
+    showTell();
   }
 
   function arm(op) {
@@ -282,12 +290,14 @@
     secret.seq = seq;
     secret.idx = 0;
     secret.armed = true;
+    showTell();
   }
 
   function feedForcedChar() {
     if (secret.idx >= secret.seq.length) return;
     const ch = secret.seq[secret.idx++];
     inputDigit(ch);
+    showTell();
   }
 
   function forceEntryComplete() {

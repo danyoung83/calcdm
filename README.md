@@ -20,8 +20,9 @@ You can also set it via URL, handy from an iOS Shortcut: `https://magic-calculat
 **Perform**
 1. Let the spectator type and calculate whatever they like.
 2. When you want to end, press **+ twice** (or **− twice**). Nothing visible changes. The app now knows the difference between what's on screen and the target.
-3. From now on, every tap anywhere on the screen enters the next digit of that difference. A rap with two or three fingers counts as one tap. It doesn't matter which key, or whether it's a key at all. Once the difference is fully entered, further taps do nothing.
-4. Tap **=**. The target appears, and the target clears itself.
+3. From now on, every tap anywhere on the screen enters the next digit of that difference. A rap with two or three fingers counts as one tap. It doesn't matter which key, or whether it's a key at all.
+4. When the last digit is in, the clock's minute hand swings from 9 o'clock to **6 o'clock**. Further taps now do nothing.
+5. Tap **=**. The target appears, the target clears itself, and the hand returns to 3 o'clock.
 
 Use **+ +** when the running total is below the target and **− −** when it's above. If you pick the wrong direction the maths on screen won't add up, though **=** still shows the target. Tapping **AC** after the digits are complete abandons the force and keeps the target set.
 
