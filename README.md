@@ -15,7 +15,7 @@ Started from [andyjermann/fakecalc](https://github.com/andyjermann/fakecalc), wh
 
 **Clear the target:** hold the clock button while the display shows 0. The minute hand goes back to 3.
 
-You can also set it via URL, handy from an iOS Shortcut: `https://magic-calculator-944.netlify.app/?t=1234`. The target survives relaunching the app until it's used or cleared.
+You can also set it via URL, handy from an iOS Shortcut: `https://calcdm.netlify.app/?t=1234`. The target survives relaunching the app until it's used or cleared.
 
 **Perform**
 1. Let the spectator type and calculate whatever they like.
