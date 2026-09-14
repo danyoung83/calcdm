@@ -225,10 +225,18 @@
     resetAll();
   }
 
+  // Deletes the last digit of whatever is on screen. A result or echoed operand becomes
+  // an editable entry first, as in iOS.
   function backspace() {
-    if (entry === null) return;
+    if (entry === null) {
+      const s = String(shown);
+      if (!isFinite(shown) || s.includes('e')) { shown = 0; render(); return; }
+      if (shown === 0) return;
+      entry = s;
+      setActiveOp(null);
+    }
     entry = entry.slice(0, -1);
-    if (entry === '' || entry === '-') entry = null;
+    if (entry === '' || entry === '-') { entry = null; shown = 0; }
     render();
   }
 
