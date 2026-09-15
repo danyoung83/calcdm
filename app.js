@@ -4,6 +4,7 @@
   // ---------- DOM ----------
   const displayEl = document.getElementById('display');
   const textEl = document.getElementById('displayText');
+  const exprEl = document.getElementById('expr');
   const keypad = document.getElementById('keypad');
   const historyBtn = document.getElementById('historyBtn');
   const modeBtn = document.getElementById('modeBtn');
@@ -24,6 +25,7 @@
   let shown = 0;           // number shown when entry is null
   let lastOp = null;       // for repeated "="
   let lastOperand = null;
+  let lastExpr = '';       // grey expression line shown above a result
   let activeOp = null;     // highlighted operator key
 
   // ---------- Secret force state ----------
@@ -114,8 +116,18 @@
     }
   }
 
+  const OP_SYMBOL = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+
+  // The grey line above the number: the pending expression while one is being built,
+  // or the full expression after "=".
+  function expressionText() {
+    if (tokens.length) return tokens.map((t) => (typeof t === 'string' ? OP_SYMBOL[t] : formatNumber(t))).join('');
+    return lastExpr;
+  }
+
   function render() {
     textEl.textContent = entry !== null ? formatEntry(entry) : formatNumber(shown);
+    exprEl.textContent = expressionText();
     fitDisplay();
   }
 
@@ -131,6 +143,7 @@
     shown = 0;
     lastOp = null;
     lastOperand = null;
+    lastExpr = '';
     setActiveOp(null);
     disarm();
     render();
@@ -140,6 +153,7 @@
   function inputDigit(d) {
     setActiveOp(null);
     if (entry === null) {
+      if (!tokens.length) lastExpr = '';   // typing after a result starts fresh
       entry = d === '.' ? '0.' : d;
     } else {
       if (d === '.' && entry.includes('.')) return;
@@ -154,19 +168,18 @@
 
   function inputOperator(op) {
     lastOp = null;
+    lastExpr = '';
     const last = tokens[tokens.length - 1];
     if (entry === null && typeof last === 'string') {
-      // Operator pressed again with nothing typed in between.
-      if (last === op && secret.target !== null && !secret.armed && (op === '+' || op === '-')) {
+      // Operator pressed again with nothing typed in between: the same one arms the force.
+      if (last === op && secret.target !== null && !secret.armed) {
         arm(op);
         return;
       }
-      tokens[tokens.length - 1] = op;
-      setActiveOp(op);
-      return;
+      tokens.pop();   // replace the pending operator
+    } else {
+      tokens.push(currentValue());
     }
-    const v = currentValue();
-    tokens.push(v);
     reduce(PREC[op]);
     shown = tokens[tokens.length - 1];
     tokens.push(op);
@@ -185,13 +198,17 @@
       lastOp = last;
       lastOperand = v;
       tokens.push(v);
+      lastExpr = expressionText();
       reduce(1);
       shown = tokens[0];
       tokens = [];
     } else if (lastOp !== null) {
-      shown = round9(apply(currentValue(), lastOp, lastOperand));
+      const v = currentValue();
+      lastExpr = formatNumber(v) + OP_SYMBOL[lastOp] + formatNumber(lastOperand);
+      shown = round9(apply(v, lastOp, lastOperand));
     } else {
       shown = currentValue();
+      lastExpr = '';
     }
     entry = null;
     render();
@@ -288,13 +305,53 @@
     showTell();
   }
 
+  // Evaluate a token list that ends with an operator, with q as the final operand.
+  function evalWith(t, q) {
+    const saved = tokens;
+    tokens = t.concat([q]);
+    reduce(1);
+    const v = tokens[0];
+    tokens = saved;
+    return v;
+  }
+
+  // The operand q that makes the pending expression (ending in an operator) equal the target.
+  // Every operator is linear in its last operand (a + b*q), except ÷ which is a + b/q.
+  function solveOperand(t, target) {
+    const op = t[t.length - 1];
+    if (op === '/') {
+      const f1 = evalWith(t, 1), f2 = evalWith(t, 2);
+      const b = 2 * (f1 - f2), a = f1 - b;
+      return b / (target - a);
+    }
+    const f0 = evalWith(t, 0), f1 = evalWith(t, 1);
+    const b = f1 - f0;
+    return (target - f0) / b;
+  }
+
+  // What the token list would be after pressing op now (without arming or changing state).
+  function prospectiveTokens(op) {
+    const saved = tokens;
+    const last = tokens[tokens.length - 1];
+    tokens = tokens.slice();
+    if (entry === null && typeof last === 'string') tokens.pop(); else tokens.push(currentValue());
+    reduce(PREC[op]);
+    tokens.push(op);
+    const out = tokens;
+    tokens = saved;
+    return out;
+  }
+
+  // The number the spectator would need to enter after op to land on the target.
+  function neededFor(op) {
+    return round9(solveOperand(prospectiveTokens(op), secret.target));
+  }
+
   function arm(op) {
-    // tokens is [total, op] here: +/- reduce everything before them.
-    const total = tokens[tokens.length - 2];
-    let delta = op === '+' ? secret.target - total : total - secret.target;
-    delta = Math.abs(round9(delta));
-    let seq = String(delta);
-    if (seq.includes('e')) seq = delta.toFixed(8).replace(/\.?0+$/, '');
+    let q = solveOperand(tokens, secret.target);
+    q = Math.abs(round9(q));
+    let seq = isFinite(q) ? String(q) : '0';
+    if (seq.includes('e')) seq = q.toFixed(8).replace(/\.?0+$/, '');
     secret.seq = seq;
     secret.idx = 0;
     secret.armed = true;
@@ -314,6 +371,8 @@
 
   function finishForce() {
     const t = secret.target;
+    // The grey line reads like a genuine sum, e.g. "25×40"
+    lastExpr = expressionText() + (entry !== null ? formatEntry(entry) : '');
     tokens = [];
     entry = null;
     shown = t;
@@ -387,8 +446,39 @@
   keypad.addEventListener('click', (e) => {
     const k = e.target.closest('.key');
     if (!k) return;
+    if (swallowClick) { swallowClick = false; return; }
     press(k.dataset.key);
   });
+
+  // Hold an operator key (target set, not armed): the display shows the number the
+  // spectator would need to enter after that operator to reach the target. Releasing
+  // restores the display and does not press the operator.
+  let swallowClick = false;
+  let opPeekTimer = null;
+  let opPeeking = false;
+  keypad.addEventListener('pointerdown', (e) => {
+    const k = e.target.closest('.key.op');
+    if (!k || !PREC[k.dataset.key] || secret.target === null || secret.armed) return;
+    const op = k.dataset.key;
+    clearTimeout(opPeekTimer);
+    opPeekTimer = setTimeout(() => {
+      opPeeking = true;
+      textEl.textContent = formatNumber(neededFor(op));
+      fitDisplay();
+    }, LONG_PRESS_MS);
+  });
+  const endOpPeek = () => {
+    clearTimeout(opPeekTimer); opPeekTimer = null;
+    if (opPeeking) {
+      opPeeking = false;
+      swallowClick = true;
+      setTimeout(() => { swallowClick = false; }, 300);
+      render();
+    }
+  };
+  keypad.addEventListener('pointerup', endOpPeek);
+  keypad.addEventListener('pointercancel', endOpPeek);
+  keypad.addEventListener('pointerleave', endOpPeek, true);
 
   // Swipe on the display deletes the last digit (iOS behaviour).
   let swipeStart = null;
@@ -459,5 +549,5 @@
   render();
 
   // Debug hooks (not visible in UI).
-  window.__calc = { press, state: () => ({ tokens, entry, shown, secret: { ...secret } }), setTarget, clearTarget };
+  window.__calc = { press, state: () => ({ tokens: tokens.slice(), entry, shown, lastExpr, secret: { ...secret } }), setTarget, clearTarget, neededFor };
 })();

@@ -14,9 +14,11 @@ It works as a normal calculator but has the forcing mechanism:
 
 2. **Do any calculation.** Any adding, subtracting, multiplying or dividing, as per the normal routine.
 
-3. **When you're ready for the final calculation**, press **+ twice** if the running total is below the force number, or **− twice** if it's above. Nothing visible changes.
+3. **When you're ready for the final calculation**, press an operator **twice**: **+** if the running total is below the force number, **−** if it's above, or **×** / **÷** if the force number is a clean multiple or fraction of the total. Nothing visible changes.
 
-4. **Every tap anywhere on the screen** then enters the next digit of the difference needed to get to the force number. So you can have them drum their fingers over it, or turn it over as in the original routine. A tap with two or three fingers counts as one tap, and it doesn't matter which keys they hit. The clock hand moves to **6 o'clock** when all digits are in, so you know it's done. Extra taps do nothing.
+   Not sure which to use? **Hold** any operator for a second and the display shows the number the spectator would need to enter after it to hit the force number, whole or not. Let go and the display goes back to normal without pressing the operator.
+
+4. **Every tap anywhere on the screen** then enters the next digit of the number needed to get to the force number. So you can have them drum their fingers over it, or turn it over as in the original routine. A tap with two or three fingers counts as one tap, and it doesn't matter which keys they hit. The clock hand moves to **6 o'clock** when all digits are in, so you know it's done. Extra taps do nothing.
 
 5. **Hit equals.** You get the force number.
 
@@ -25,7 +27,7 @@ The whole thing is self-working, with no shortcuts or mental maths, and you can 
 Other things worth knowing:
 
 - Hold the clock icon while the display shows 0 to clear the force number.
-- If you get the direction wrong in step 3, the sum on screen won't add up, though **=** still shows the force number.
+- If you pick an operator that doesn't work out cleanly in step 3, the sum on screen won't add up, though **=** still shows the force number. The hold-to-peek shows a minus sign or a decimal when that would happen.
 - Tapping **AC** after the digits are complete abandons the force and keeps the number set. While digits are still owed, AC and backspace count as taps like any other key.
 - You can preset the number from an iOS Shortcut by opening `https://calcdm.netlify.app/?t=1234`. It survives relaunching the app until it's used or cleared.
 

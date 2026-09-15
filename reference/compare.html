@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!-- Dev only: overlays a reference iOS screenshot on the live calculator.
-     ref=ios26 (default): 393x852 phone, full-screen screenshot
+     ref=ios26 (default): 393x852 phone, showing 0
+     ref=result: same phone, showing 600,000÷30 = 20,000 (expression line)
      ref=ios18: 430x932 phone, status bar cropped
      mode=diff  -> difference blend (matching pixels go black)
      mode=half  -> reference at 50% opacity
@@ -27,7 +28,7 @@
   const img = document.getElementById('ref'), stage = document.getElementById('stage'), f = document.getElementById('f');
   let W, H;
   if (ref === 'ios18') { W = 430; H = 932; img.src = 'calc-zero.jpg'; img.style.top = '45.67px'; img.style.height = '886.33px'; }
-  else { W = 393; H = 852; img.src = 'ios26-calc.jpg'; img.style.top = '0'; img.style.height = H + 'px'; }
+  else { W = 393; H = 852; img.src = ref === 'result' ? 'ios26-result.jpg' : 'ios26-calc.jpg'; img.style.top = '0'; img.style.height = H + 'px'; }
   img.style.width = W + 'px';
   stage.style.width = f.style.width = W + 'px';
   stage.style.height = f.style.height = H + 'px';
