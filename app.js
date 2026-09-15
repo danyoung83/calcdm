@@ -5,28 +5,30 @@
   const displayEl = document.getElementById('display');
   const textEl = document.getElementById('displayText');
   const exprEl = document.getElementById('expr');
+  const exprTextEl = document.getElementById('exprText');
   const keypad = document.getElementById('keypad');
+  const clearKey = document.getElementById('clearKey');
   const historyBtn = document.getElementById('historyBtn');
   const modeBtn = document.getElementById('modeBtn');
   const minuteHand = document.getElementById('minuteHand');
-  const opKeys = {};
-  keypad.querySelectorAll('.key.op').forEach((b) => { opKeys[b.dataset.key] = b; });
 
   const MAX_DIGITS = 9;
   const BASE_FONT = 64;
-  const MIN_FONT = 30;
+  const MIN_SCALE = 0.75;
   const LONG_PRESS_MS = 700;
   const STORAGE_KEY = 'calc.target';
 
   // ---------- Calculator state ----------
-  // tokens: alternating numbers and operators, e.g. [2, '+', 3, '*']
+  // raw: the expression as entered, alternating numbers and operators, e.g. [55, '+', 6623, '+'].
+  //      It's what the big line shows. It never contains the number currently being typed.
+  // tokens: the evaluation stack derived from raw, reduced by precedence as iOS does.
+  let raw = [];
   let tokens = [];
   let entry = null;        // string being typed ("12.5", "-0"), or null
-  let shown = 0;           // number shown when entry is null
+  let shown = 0;           // result shown when nothing is pending
   let lastOp = null;       // for repeated "="
   let lastOperand = null;
-  let lastExpr = '';       // grey expression line shown above a result
-  let activeOp = null;     // highlighted operator key
+  let lastExpr = '';       // grey line above a result
 
   // ---------- Secret force state ----------
   const secret = {
@@ -38,6 +40,7 @@
 
   // ---------- Helpers ----------
   const PREC = { '+': 1, '-': 1, '*': 2, '/': 2 };
+  const OP_SYMBOL = { '+': '+', '-': '−', '*': '×', '/': '÷' };
 
   function apply(a, op, b) {
     switch (op) {
@@ -54,8 +57,14 @@
     return parseFloat(n.toPrecision(9));
   }
 
+  function pending() { return raw.length > 0; }
+
+  // The value the display is "on": the number being typed, the running value of a pending
+  // expression, or the last result.
   function currentValue() {
-    return entry !== null ? parseFloat(entry) || 0 : shown;
+    if (entry !== null) return parseFloat(entry) || 0;
+    if (pending()) return tokens[tokens.length - 2];
+    return shown;
   }
 
   // Reduce the token stack while the top operator's precedence >= minPrec.
@@ -65,6 +74,15 @@
       if (PREC[op] < minPrec) break;
       const b = tokens.pop(); tokens.pop(); const a = tokens.pop();
       tokens.push(round9(apply(a, op, b)));
+    }
+  }
+
+  // Rebuild the evaluation stack from the raw expression.
+  function rebuild() {
+    tokens = [];
+    for (const t of raw) {
+      if (typeof t === 'string') { reduce(PREC[t]); tokens.push(t); }
+      else tokens.push(t);
     }
   }
 
@@ -93,10 +111,7 @@
       return m + 'e' + (e[0] === '+' ? e.slice(1) : e);
     }
     let s = String(round9(n));
-    if (s.includes('e')) {
-      // small numbers may still come out as e-notation from toPrecision
-      s = n.toFixed(9).replace(/\.?0+$/, '');
-    }
+    if (s.includes('e')) s = n.toFixed(9).replace(/\.?0+$/, '');
     let neg = false;
     if (s[0] === '-') { neg = true; s = s.slice(1); }
     const [i, f] = s.split('.');
@@ -105,55 +120,62 @@
     return (neg ? '-' : '') + out;
   }
 
-  function fitDisplay() {
-    textEl.style.fontSize = '';   // back to the CSS size, which scales with screen width
-    const base = parseFloat(getComputedStyle(textEl).fontSize) || BASE_FONT;
-    const avail = displayEl.clientWidth;
-    const w = textEl.scrollWidth;
-    if (w > avail) {
-      const size = Math.max(MIN_FONT, Math.floor(base * avail / w));
-      textEl.style.fontSize = size + 'px';
-    }
+  // A number as a plain entry string (no commas), for turning results into editable entries.
+  function toEntry(n) {
+    const s = String(round9(n));
+    return s.includes('e') || !isFinite(n) ? null : s;
   }
 
-  const OP_SYMBOL = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+  function rawText() {
+    return raw.map((t) => (typeof t === 'string' ? OP_SYMBOL[t] : formatNumber(t))).join('');
+  }
 
-  // The grey line above the number: the pending expression while one is being built,
-  // or the full expression after "=".
-  function expressionText() {
-    if (tokens.length) return tokens.map((t) => (typeof t === 'string' ? OP_SYMBOL[t] : formatNumber(t))).join('');
-    return lastExpr;
+  // The big white line: the expression as it's being built, or the number / result.
+  function bigText() {
+    if (pending()) return rawText() + (entry !== null ? formatEntry(entry) : '');
+    return entry !== null ? formatEntry(entry) : formatNumber(shown);
+  }
+
+  // iOS shrinks long text to fit, down to 75% of its size, and beyond that lets it run
+  // off the left edge with a fade.
+  function fitText(el, container) {
+    el.style.fontSize = '';   // back to the CSS size, which scales with screen width
+    const base = parseFloat(getComputedStyle(el).fontSize) || BASE_FONT;
+    const avail = container.clientWidth;
+    if (el.scrollWidth > avail) {
+      el.style.fontSize = Math.max(base * MIN_SCALE, base * avail / el.scrollWidth).toFixed(2) + 'px';
+    }
+    container.classList.toggle('clipped', el.scrollWidth > avail + 0.5);
+  }
+
+  function fitDisplay() {
+    fitText(textEl, displayEl);
+    fitText(exprTextEl, exprEl);
   }
 
   function render() {
-    textEl.textContent = entry !== null ? formatEntry(entry) : formatNumber(shown);
-    exprEl.textContent = expressionText();
+    textEl.textContent = bigText();
+    exprTextEl.textContent = pending() ? '' : lastExpr;
+    clearKey.textContent = (entry !== null || pending()) ? 'C' : 'AC';
     fitDisplay();
   }
 
-  function setActiveOp(op) {
-    if (activeOp && opKeys[activeOp]) opKeys[activeOp].classList.remove('active');
-    activeOp = op;
-    if (op && opKeys[op]) opKeys[op].classList.add('active');
-  }
-
   function resetAll() {
+    raw = [];
     tokens = [];
     entry = null;
     shown = 0;
     lastOp = null;
     lastOperand = null;
     lastExpr = '';
-    setActiveOp(null);
     disarm();
     render();
   }
 
   // ---------- Input handlers ----------
   function inputDigit(d) {
-    setActiveOp(null);
     if (entry === null) {
-      if (!tokens.length) lastExpr = '';   // typing after a result starts fresh
+      if (!pending()) lastExpr = '';   // typing after a result starts fresh
       entry = d === '.' ? '0.' : d;
     } else {
       if (d === '.' && entry.includes('.')) return;
@@ -169,39 +191,33 @@
   function inputOperator(op) {
     lastOp = null;
     lastExpr = '';
-    const last = tokens[tokens.length - 1];
+    const last = raw[raw.length - 1];
     if (entry === null && typeof last === 'string') {
       // Operator pressed again with nothing typed in between: the same one arms the force.
       if (last === op && secret.target !== null && !secret.armed) {
         arm(op);
         return;
       }
-      tokens.pop();   // replace the pending operator
+      raw[raw.length - 1] = op;   // change the pending operator
     } else {
-      tokens.push(currentValue());
+      raw.push(currentValue(), op);
     }
-    reduce(PREC[op]);
-    shown = tokens[tokens.length - 1];
-    tokens.push(op);
     entry = null;
-    setActiveOp(op);
+    rebuild();
     render();
   }
 
   function inputEquals() {
-    setActiveOp(null);
     if (secret.armed) { finishForce(); return; }
-
-    const last = tokens[tokens.length - 1];
-    if (typeof last === 'string') {
+    if (pending()) {
       const v = currentValue();
-      lastOp = last;
+      lastOp = raw[raw.length - 1];
       lastOperand = v;
-      tokens.push(v);
-      lastExpr = expressionText();
+      raw.push(v);
+      lastExpr = rawText();
+      rebuild();
       reduce(1);
       shown = tokens[0];
-      tokens = [];
     } else if (lastOp !== null) {
       const v = currentValue();
       lastExpr = formatNumber(v) + OP_SYMBOL[lastOp] + formatNumber(lastOperand);
@@ -210,6 +226,8 @@
       shown = currentValue();
       lastExpr = '';
     }
+    raw = [];
+    tokens = [];
     entry = null;
     render();
   }
@@ -217,43 +235,58 @@
   function inputNegate() {
     if (entry !== null) {
       entry = entry[0] === '-' ? entry.slice(1) : '-' + entry;
+    } else if (pending()) {
+      entry = '-0';
     } else {
       shown = shown === 0 ? -0 : -shown;
-      if (Object.is(shown, -0)) { entry = '-0'; }
+      if (Object.is(shown, -0)) entry = '-0';
     }
     render();
   }
 
   function inputPercent() {
     const v = currentValue();
-    const last = tokens[tokens.length - 1];
+    const last = raw[raw.length - 1];
     let result;
     if (typeof last === 'string' && (last === '+' || last === '-')) {
       result = tokens[tokens.length - 2] * v / 100;
     } else {
       result = v / 100;
     }
-    shown = round9(result);
-    entry = null;
+    result = round9(result);
+    if (pending()) entry = toEntry(result) ?? '0';   // becomes the operand being entered
+    else { shown = result; entry = null; }
     render();
   }
 
+  // C clears the number being typed; AC (or C with nothing typed) clears everything.
   function inputClear() {
+    if (entry !== null) {
+      entry = null;
+      if (!pending()) shown = 0;
+      render();
+      return;
+    }
     resetAll();
   }
 
-  // Deletes the last digit of whatever is on screen. A result or echoed operand becomes
-  // an editable entry first, as in iOS.
+  // Deletes the last character of what's on screen: a digit of the number being typed,
+  // a trailing operator of the expression, or a digit of a result (which becomes editable).
   function backspace() {
     if (entry === null) {
-      const s = String(shown);
-      if (!isFinite(shown) || s.includes('e')) { shown = 0; render(); return; }
+      if (pending()) {
+        raw.pop();                          // the trailing operator
+        entry = toEntry(raw.pop());
+        rebuild();
+        render();
+        return;
+      }
       if (shown === 0) return;
-      entry = s;
-      setActiveOp(null);
+      entry = toEntry(shown);
+      if (entry === null) { shown = 0; render(); return; }
     }
     entry = entry.slice(0, -1);
-    if (entry === '' || entry === '-') { entry = null; shown = 0; }
+    if (entry === '' || entry === '-') { entry = null; if (!pending()) shown = 0; }
     render();
   }
 
@@ -305,7 +338,7 @@
     showTell();
   }
 
-  // Evaluate a token list that ends with an operator, with q as the final operand.
+  // Evaluate a token stack that ends with an operator, with q as the final operand.
   function evalWith(t, q) {
     const saved = tokens;
     tokens = t.concat([q]);
@@ -325,20 +358,19 @@
       return b / (target - a);
     }
     const f0 = evalWith(t, 0), f1 = evalWith(t, 1);
-    const b = f1 - f0;
-    return (target - f0) / b;
+    return (target - f0) / (f1 - f0);
   }
 
-  // What the token list would be after pressing op now (without arming or changing state).
+  // The token stack there would be after pressing op now (without changing state).
   function prospectiveTokens(op) {
-    const saved = tokens;
-    const last = tokens[tokens.length - 1];
-    tokens = tokens.slice();
-    if (entry === null && typeof last === 'string') tokens.pop(); else tokens.push(currentValue());
-    reduce(PREC[op]);
-    tokens.push(op);
+    const savedRaw = raw, savedTokens = tokens;
+    raw = raw.slice();
+    const last = raw[raw.length - 1];
+    if (entry === null && typeof last === 'string') raw[raw.length - 1] = op;
+    else raw.push(currentValue(), op);
+    rebuild();
     const out = tokens;
-    tokens = saved;
+    raw = savedRaw; tokens = savedTokens;
     return out;
   }
 
@@ -365,14 +397,24 @@
     showTell();
   }
 
+  // Backspace while armed: remove the last fed digit so the next tap re-enters it.
+  function forceBackspace() {
+    if (secret.idx === 0 || entry === null) return;
+    secret.idx--;
+    entry = entry.slice(0, -1);
+    if (entry === '') entry = null;
+    render();
+    showTell();
+  }
+
   function forceEntryComplete() {
     return secret.armed && secret.idx >= secret.seq.length;
   }
 
   function finishForce() {
     const t = secret.target;
-    // The grey line reads like a genuine sum, e.g. "25×40"
-    lastExpr = expressionText() + (entry !== null ? formatEntry(entry) : '');
+    lastExpr = bigText();   // reads like a genuine sum, e.g. "25×40"
+    raw = [];
     tokens = [];
     entry = null;
     shown = t;
@@ -388,9 +430,10 @@
   // owed, taps are consumed by the document-level tap detector below, not here.
   function press(key) {
     if (secret.armed) {
+      if (key === 'bs') return forceBackspace();
       if (!forceEntryComplete()) return;
       if (key === '=') return inputEquals();
-      if (key === 'clear') return inputClear();
+      if (key === 'clear') return resetAll();
       return;
     }
     switch (key) {
@@ -407,12 +450,14 @@
 
   // ---------- Whole-screen tap detection while armed ----------
   // One digit per tap gesture, however many fingers land and wherever they land.
+  // The backspace key is the exception: it deletes instead.
   const activePointers = new Set();
   let lastFeedAt = 0;
   function onAnyPointerDown(e) {
     const wasIdle = activePointers.size === 0;
     activePointers.add(e.pointerId);
     if (!secret.armed || forceEntryComplete()) return;
+    if (e.target.closest && e.target.closest('[data-key="bs"]')) return;
     const now = performance.now();
     if (wasIdle && now - lastFeedAt > 150) {
       lastFeedAt = now;
@@ -443,6 +488,7 @@
   keypad.addEventListener('pointerleave', release, true);
   keypad.addEventListener('pointerout', release);
 
+  let swallowClick = false;
   keypad.addEventListener('click', (e) => {
     const k = e.target.closest('.key');
     if (!k) return;
@@ -453,7 +499,6 @@
   // Hold an operator key (target set, not armed): the display shows the number the
   // spectator would need to enter after that operator to reach the target. Releasing
   // restores the display and does not press the operator.
-  let swallowClick = false;
   let opPeekTimer = null;
   let opPeeking = false;
   keypad.addEventListener('pointerdown', (e) => {
@@ -464,7 +509,7 @@
     opPeekTimer = setTimeout(() => {
       opPeeking = true;
       textEl.textContent = formatNumber(neededFor(op));
-      fitDisplay();
+      fitText(textEl, displayEl);
     }, LONG_PRESS_MS);
   });
   const endOpPeek = () => {
@@ -480,7 +525,7 @@
   keypad.addEventListener('pointercancel', endOpPeek);
   keypad.addEventListener('pointerleave', endOpPeek, true);
 
-  // Swipe on the display deletes the last digit (iOS behaviour).
+  // Swipe on the display deletes the last character (iOS behaviour).
   let swipeStart = null;
   displayEl.addEventListener('pointerdown', (e) => { swipeStart = { x: e.clientX, y: e.clientY }; });
   displayEl.addEventListener('pointerup', (e) => {
@@ -525,7 +570,7 @@
   longPress(modeBtn, () => {
     if (secret.armed || secret.target === null) return;
     textEl.textContent = formatNumber(secret.target);
-    fitDisplay();
+    fitText(textEl, displayEl);
   }, () => render());
 
   document.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -549,5 +594,5 @@
   render();
 
   // Debug hooks (not visible in UI).
-  window.__calc = { press, state: () => ({ tokens: tokens.slice(), entry, shown, lastExpr, secret: { ...secret } }), setTarget, clearTarget, neededFor };
+  window.__calc = { press, state: () => ({ raw: raw.slice(), tokens: tokens.slice(), entry, shown, lastExpr, secret: { ...secret } }), setTarget, clearTarget, neededFor };
 })();

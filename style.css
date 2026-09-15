@@ -132,10 +132,6 @@ button svg {
 .key.fn.pressed  { background: var(--fn-press); }
 .key.op.pressed  { background: var(--orange-press); }
 
-/* Operator awaiting its second operand: inverted */
-.key.op.active { background: var(--white); color: var(--orange); }
-.key.op.active.pressed { background: var(--white); }
-
 /* Text labels render slightly low relative to the reference; nudge them up */
 .key.num:not([data-key="negate"]), .key.fn[data-key="clear"] { padding-bottom: calc(0.8 * var(--u)); }
 /* The backspace glyph's visual centre sits left of the button centre in iOS */
@@ -148,13 +144,17 @@ button svg {
   right: calc(15.5 * var(--u));
   top: calc(var(--safe-top) + 160.8 * var(--u));
   height: calc(27 * var(--u));
+  color: #8e8e93;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  overflow: hidden;
+}
+.expr span {
   font-size: calc(27 * var(--u));
   font-weight: 400;
   line-height: 1;
-  color: #8e8e93;
-  text-align: right;
   white-space: nowrap;
-  overflow: hidden;
 }
 
 /* Display */
@@ -162,12 +162,19 @@ button svg {
   position: absolute;
   left: var(--pad-x);
   right: calc(16.2 * var(--u));
-  top: calc(var(--safe-top) + 188.1 * var(--u));   /* puts the digit baseline at 314pt on iOS Safari */
-  height: calc(var(--display-size) * 1.2);
+  /* The box is exactly one line of the base size, so shrunken text stays centred on the
+     same line as iOS does. Puts the digit baseline at 314pt on iOS Safari. */
+  top: calc(var(--safe-top) + 200.9 * var(--u));
+  height: var(--display-size);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: flex-end;
   overflow: hidden;
+}
+/* Text that still doesn't fit runs off the left edge and fades out, as in iOS 26 */
+.clipped {
+  -webkit-mask-image: linear-gradient(to right, rgba(0, 0, 0, 0), #000 calc(25 * var(--u)));
+  mask-image: linear-gradient(to right, rgba(0, 0, 0, 0), #000 calc(25 * var(--u)));
 }
 .display-text {
   display: block;
