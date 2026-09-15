@@ -584,7 +584,34 @@
     if (/^[0-9.+\-*\/=]$/.test(key) || key === 'clear' || key === 'percent' || key === 'bs') press(key);
   });
 
-  window.addEventListener('resize', fitDisplay);
+  // ---------- Orientation lock ----------
+  // iOS won't let a web app lock orientation, so when the phone is held sideways we
+  // counter-rotate the whole layout and keep it drawn in the portrait frame.
+  const root = document.documentElement;
+  function applyOrientation() {
+    const landscape = innerWidth > innerHeight;
+    if (!landscape) {
+      root.classList.remove('rotated');
+      ['--vw', '--safe-top', '--rw', '--rh', '--rot'].forEach((p) => root.style.removeProperty(p));
+      return;
+    }
+    let angle = 90;
+    if (screen.orientation && typeof screen.orientation.angle === 'number') angle = screen.orientation.angle;
+    else if (typeof window.orientation === 'number') angle = (window.orientation + 360) % 360;
+    const w = innerHeight, h = innerWidth;   // the portrait frame
+    root.classList.add('rotated');
+    root.style.setProperty('--rw', w + 'px');
+    root.style.setProperty('--rh', h + 'px');
+    root.style.setProperty('--rot', (angle === 90 ? -90 : 90) + 'deg');
+    root.style.setProperty('--vw', w + 'px');
+    // The phone's physical top edge is now a side edge; its inset becomes our top inset.
+    root.style.setProperty('--safe-top', angle === 90 ? 'env(safe-area-inset-left, 59px)' : 'env(safe-area-inset-right, 59px)');
+  }
+  const onResize = () => { applyOrientation(); fitDisplay(); };
+  window.addEventListener('resize', onResize);
+  window.addEventListener('orientationchange', () => setTimeout(onResize, 50));
+  if (screen.orientation) screen.orientation.addEventListener('change', () => setTimeout(onResize, 50));
+  applyOrientation();
 
   if ('serviceWorker' in navigator && location.protocol !== 'file:' && !location.search.includes('nosw')) {
     navigator.serviceWorker.register('sw.js').catch(() => {});

@@ -1,7 +1,8 @@
 /* Geometry measured from an iOS 26 Calculator screenshot on a 393 x 852 pt iPhone (15/16/17 Pro size).
    CSS px == iOS pt. Everything scales with screen width via --u so other models stay proportional. */
 :root {
-  --u: calc(100vw / 393);   /* one iOS point on a 393pt-wide screen */
+  --vw: 100vw;               /* the portrait width; overridden when the phone is sideways */
+  --u: calc(var(--vw) / 393);   /* one iOS point on a 393pt-wide screen */
 
   --orange: #ff9201;
   --orange-dark: #fa8c00;
@@ -19,7 +20,7 @@
   --pad-x: calc(16 * var(--u));
   --gap-x: calc(8 * var(--u));
   --gap-y: calc(8 * var(--u));
-  --btn: calc((100vw - 2 * var(--pad-x) - 3 * var(--gap-x)) / 4);
+  --btn: calc((var(--vw) - 2 * var(--pad-x) - 3 * var(--gap-x)) / 4);
   --top-btn: calc(44 * var(--u));
   --safe-top: env(safe-area-inset-top, 59px);
   --display-size: calc(64 * var(--u));
@@ -50,6 +51,16 @@ html, body {
   inset: 0;
   background: #000;
   touch-action: manipulation;
+}
+/* Phone held sideways: keep the portrait layout, rotated back to the phone's natural up */
+html.rotated .calc {
+  inset: auto;
+  top: 50%;
+  left: 50%;
+  width: var(--rw);
+  height: var(--rh);
+  transform: translate(-50%, -50%) rotate(var(--rot));
+  transform-origin: center;
 }
 
 button {
