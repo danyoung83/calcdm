@@ -2,7 +2,7 @@
 
 A working replica of the iOS 26 Calculator, built as a web app you add to your Home Screen, with a forcing mechanism built in. It's made for the [I.C.F. calculator force](https://thedailymagician.com/icf-force), and lets you do the final phase with the phone face up while the spectator drums their fingers on the screen.
 
-Live: **https://calcdm.netlify.app**
+Live: **https://calcdm.com**
 
 Background:
 
@@ -38,11 +38,11 @@ Other things worth knowing:
 - Hold the clock icon while the display shows 0 to clear the force number.
 - If you pick an operator that doesn't work out cleanly in step 3, the sum on screen won't add up, though **=** still shows the force number. The hold-to-peek shows a minus sign or a decimal when that would happen.
 - While digits are still owed, **C** counts as a tap like any other key. After the digits are complete, **C** abandons the force and keeps the number set.
-- You can preset the number from an iOS Shortcut by opening `https://calcdm.netlify.app/?t=1234`. It survives relaunching the app until it's used or cleared.
+- You can preset the number from an iOS Shortcut by opening `https://calcdm.com/?t=1234`. It survives relaunching the app until it's used or cleared.
 
 ## Add to Home Screen
 
-1. Open https://calcdm.netlify.app in **Safari**.
+1. Open https://calcdm.com in **Safari**.
 2. **Share → Add to Home Screen**. Name it **Calculator**. It picks up the real app's icon.
 3. Launch it from the Home Screen once while online so it caches. It then works offline.
 
