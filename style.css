@@ -54,13 +54,14 @@ html, body {
 }
 /* Phone held sideways: keep the portrait layout, rotated back to the phone's natural up */
 html.rotated .calc {
+  position: absolute;
   inset: auto;
-  top: 50%;
-  left: 50%;
+  top: 0;
+  left: 0;
   width: var(--rw);
   height: var(--rh);
-  transform: translate(-50%, -50%) rotate(var(--rot));
-  transform-origin: center;
+  transform-origin: 0 0;
+  transform: var(--rot-transform);
 }
 
 button {

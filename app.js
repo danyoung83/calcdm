@@ -592,21 +592,32 @@
     const landscape = innerWidth > innerHeight;
     if (!landscape) {
       root.classList.remove('rotated');
-      ['--vw', '--safe-top', '--rw', '--rh', '--rot'].forEach((p) => root.style.removeProperty(p));
+      ['--vw', '--safe-top', '--rw', '--rh', '--rot-transform'].forEach((p) => root.style.removeProperty(p));
       return;
     }
     let angle = 90;
     if (screen.orientation && typeof screen.orientation.angle === 'number') angle = screen.orientation.angle;
     else if (typeof window.orientation === 'number') angle = (window.orientation + 360) % 360;
-    const w = innerHeight, h = innerWidth;   // the portrait frame
+    const w = innerHeight, h = innerWidth;   // the portrait frame: w wide, h tall
+    window.scrollTo(0, 0);
     root.classList.add('rotated');
     root.style.setProperty('--rw', w + 'px');
     root.style.setProperty('--rh', h + 'px');
-    root.style.setProperty('--rot', (angle === 90 ? -90 : 90) + 'deg');
+    // Rotate about the top-left corner, then shift back into view (a well-tested pattern
+    // for WebKit hit-testing, unlike rotating a fixed element about its centre).
+    root.style.setProperty('--rot-transform', angle === 90
+      ? `translate(0, ${w}px) rotate(-90deg)`     // phone turned anticlockwise
+      : `translate(${h}px, 0) rotate(90deg)`);    // phone turned clockwise
     root.style.setProperty('--vw', w + 'px');
     // The phone's physical top edge is now a side edge; its inset becomes our top inset.
     root.style.setProperty('--safe-top', angle === 90 ? 'env(safe-area-inset-left, 59px)' : 'env(safe-area-inset-right, 59px)');
   }
+  // If the browser ever allows it, lock portrait natively (needs a user gesture); harmless otherwise.
+  document.addEventListener('pointerdown', () => {
+    if (screen.orientation && typeof screen.orientation.lock === 'function') {
+      screen.orientation.lock('portrait').catch(() => {});
+    }
+  }, { once: true, capture: true });
   const onResize = () => { applyOrientation(); fitDisplay(); };
   window.addEventListener('resize', onResize);
   window.addEventListener('orientationchange', () => setTimeout(onResize, 50));
