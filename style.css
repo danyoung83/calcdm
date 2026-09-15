@@ -12,7 +12,7 @@
   --num: #343434;
   --num-dark: #2e2e2e;
   --num-press: #737373;
-  --top: #121212;
+  --top: #202020;
   --white: #ffffff;
   --rim: rgba(255, 255, 255, 0.16);
 
@@ -100,7 +100,9 @@ button svg {
   position: absolute;
   left: var(--pad-x);
   right: var(--pad-x);
-  top: calc(336.9 * var(--u));
+  /* Offsets are from the top safe-area inset, so they hold whether the page starts under
+     the status bar (translucent) or below it (opaque, safe-area-inset-top = 0). */
+  top: calc(var(--safe-top) + 277.9 * var(--u));
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-auto-rows: var(--btn);
@@ -144,7 +146,7 @@ button svg {
   position: absolute;
   left: var(--pad-x);
   right: calc(16.2 * var(--u));
-  top: calc(247.1 * var(--u));   /* puts the digit baseline at 314pt on iOS Safari */
+  top: calc(var(--safe-top) + 188.1 * var(--u));   /* puts the digit baseline at 314pt on iOS Safari */
   height: calc(var(--display-size) * 1.2);
   display: flex;
   align-items: flex-end;

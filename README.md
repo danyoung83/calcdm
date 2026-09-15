@@ -1,54 +1,56 @@
-# Magic Calculator
+# calcdm
 
-A working replica of the iOS 26 Calculator, built as a PWA, with a hidden force for magic routines. Opened from the Home Screen it looks and behaves like the real app.
+A working replica of the iOS 26 Calculator, built as a web app you add to your Home Screen, with a forcing mechanism built in. It's made for the [I.C.F. calculator force](https://thedailymagician.com/icf-force), and lets you do the final phase with the phone face up while the spectator drums their fingers on the screen.
 
-Started from [andyjermann/fakecalc](https://github.com/andyjermann/fakecalc), which was a static screenshot. This version is a real calculator with the same pixel geometry, measured from a screenshot of the real app on a 393 x 852 pt iPhone (15/16/17 Pro size). All sizes are expressed relative to screen width, so other models scale proportionally.
+Live: **https://calcdm.netlify.app**
 
-## The secret
+Inspired by [andyjermann/fakecalc](https://github.com/andyjermann/fakecalc), which was a static screenshot. This is a real calculator with the same pixel geometry as the iOS 26 app, measured from screenshots on an iPhone 14 Pro.
 
-**Set the target number**
-1. Type the number you want to force.
-2. Hold the clock button in the top left for about a second. The display clears to 0.
-3. The tell: the clock's minute hand normally points to 3 o'clock. While a target is set it points to 9 o'clock.
+## How it works
 
-**Check the target:** hold the calculator button in the top right. The target shows on the display while you hold, then the previous value comes back.
+It works as a normal calculator but has the forcing mechanism:
 
-**Clear the target:** hold the clock button while the display shows 0. The minute hand goes back to 3.
+1. **Set the force number.** Type a number, then hold the clock icon (top left) for a second. The display clears and the clock hand swings to 9 o'clock, which tells you it's set. Hold the calculator icon (top right) at any time to peek at the number.
 
-You can also set it via URL, handy from an iOS Shortcut: `https://calcdm.netlify.app/?t=1234`. The target survives relaunching the app until it's used or cleared.
+2. **Do any calculation.** Any adding, subtracting, multiplying or dividing, as per the normal routine.
 
-**Perform**
-1. Let the spectator type and calculate whatever they like.
-2. When you want to end, press **+ twice** (or **− twice**). Nothing visible changes. The app now knows the difference between what's on screen and the target.
-3. From now on, every tap anywhere on the screen enters the next digit of that difference. A rap with two or three fingers counts as one tap. It doesn't matter which key, or whether it's a key at all.
-4. When the last digit is in, the clock's minute hand swings from 9 o'clock to **6 o'clock**. Further taps now do nothing.
-5. Tap **=**. The target appears, the target clears itself, and the hand returns to 3 o'clock.
+3. **When you're ready for the final calculation**, press **+ twice** if the running total is below the force number, or **− twice** if it's above. Nothing visible changes.
 
-Use **+ +** when the running total is below the target and **− −** when it's above. If you pick the wrong direction the maths on screen won't add up, though **=** still shows the target. Tapping **AC** after the digits are complete abandons the force and keeps the target set.
+4. **Every tap anywhere on the screen** then enters the next digit of the difference needed to get to the force number. So you can have them drum their fingers over it, or turn it over as in the original routine. A tap with two or three fingers counts as one tap, and it doesn't matter which keys they hit. The clock hand moves to **6 o'clock** when all digits are in, so you know it's done. Extra taps do nothing.
 
-## Deploy
+5. **Hit equals.** You get the force number.
 
-The folder is linked to the Netlify site. After any change:
+The whole thing is self-working, with no shortcuts or mental maths, and you can do it face up. After the reveal the force number clears itself and the clock hand returns to 3 o'clock.
 
-```
-netlify deploy --prod --dir .
-```
+Other things worth knowing:
 
-## Add to Home Screen (iPhone)
+- Hold the clock icon while the display shows 0 to clear the force number.
+- If you get the direction wrong in step 3, the sum on screen won't add up, though **=** still shows the force number.
+- Tapping **AC** after the digits are complete abandons the force and keeps the number set. While digits are still owed, AC and backspace count as taps like any other key.
+- You can preset the number from an iOS Shortcut by opening `https://calcdm.netlify.app/?t=1234`. It survives relaunching the app until it's used or cleared.
 
-1. Open the Netlify URL in **Safari**.
-2. **Share → Add to Home Screen**. Name it **Calculator**.
-3. Launch it from the Home Screen once while online so the service worker caches it. It then works offline.
+## Add to Home Screen
 
-## Files
+1. Open https://calcdm.netlify.app in **Safari**.
+2. **Share → Add to Home Screen**. Name it **Calculator**. It picks up the real app's icon.
+3. Launch it from the Home Screen once while online so it caches. It then works offline.
+
+Tested on an iPhone 14 Pro. Sizes are expressed relative to screen width, so other iPhones should scale, but they may need a tweak.
+
+## Background
+
+- [The Jerx: the calculator force, face up](https://www.thejerx.com/blog/2025/5/6/t12u882u8mz4kzsjc0hfh1efgbqdpx)
+- [The Jerx: Carefree Toxic](https://www.thejerx.com/blog/2025/5/13/carefree-toxic)
+- [The Daily Magician: the I.C.F. force](https://thedailymagician.com/icf-force)
+
+## Development
+
+Static files, no build step.
 
 - `index.html` — markup, with the operator and icon glyphs as inline SVG sized to the reference
-- `style.css` — all geometry in CSS px (equal to iOS pt); safe-area insets keep it aligned under the status bar and home indicator
-- `app.js` — calculator engine (iOS precedence, %, ±, backspace, repeated =, swipe-to-delete on the display) and the force logic
-- `manifest.webmanifest`, `sw.js` — PWA install and offline cache
-- `reference/ios26-calc.jpg` — the iOS 26 screenshot used for calibration (`calc-zero.jpg` is the older iOS 18 one)
-- `reference/compare.html` — dev page that overlays a reference on the live app (`?ref=ios26|ios18&mode=diff|half|off`)
+- `style.css` — all geometry as multiples of `--u`, one point on a 393pt-wide screen, anchored to the safe areas
+- `app.js` — calculator engine (iOS precedence, %, ±, backspace, repeated =, swipe-to-delete) and the force logic
+- `manifest.webmanifest`, `sw.js` — Home Screen install and offline cache
+- `reference/` — the iOS screenshots used for calibration and `compare.html`, a dev page that overlays one on the live app (`?ref=ios26&mode=diff|half|off`)
 
-## Calibrating for a different iPhone
-
-Everything is a multiple of `--u`, one point on a 393pt-wide screen, so the layout scales with width and is anchored to the safe areas. To check another model exactly: take a screenshot of the real Calculator showing 0, drop it in `reference/`, point `compare.html` at it, and adjust the numbers at the top of `style.css`. Convert screenshot pixels to points at `screen-width-in-pt / image-width-in-px`.
+Deploy with `netlify deploy --prod --dir .` from the project folder (it's linked to the Netlify site).
