@@ -1,8 +1,7 @@
 /* Geometry measured from an iOS 26 Calculator screenshot on a 393 x 852 pt iPhone (15/16/17 Pro size).
    CSS px == iOS pt. Everything scales with screen width via --u so other models stay proportional. */
 :root {
-  --vw: 100vw;               /* the portrait width; overridden when the phone is sideways */
-  --u: calc(var(--vw) / 393);   /* one iOS point on a 393pt-wide screen */
+  --u: calc(100vw / 393);   /* one iOS point on a 393pt-wide screen */
 
   --orange: #ff9201;
   --orange-dark: #fa8c00;
@@ -20,7 +19,7 @@
   --pad-x: calc(16 * var(--u));
   --gap-x: calc(8 * var(--u));
   --gap-y: calc(8 * var(--u));
-  --btn: calc((var(--vw) - 2 * var(--pad-x) - 3 * var(--gap-x)) / 4);
+  --btn: calc((100vw - 2 * var(--pad-x) - 3 * var(--gap-x)) / 4);
   --top-btn: calc(44 * var(--u));
   --safe-top: env(safe-area-inset-top, 59px);
   --display-size: calc(64 * var(--u));
@@ -52,16 +51,9 @@ html, body {
   background: #000;
   touch-action: manipulation;
 }
-/* Phone held sideways: keep the portrait layout, rotated back to the phone's natural up */
-html.rotated .calc {
-  position: absolute;
-  inset: auto;
-  top: 0;
-  left: 0;
-  width: var(--rw);
-  height: var(--rh);
-  transform-origin: 0 0;
-  transform: var(--rot-transform);
+/* Phone held sideways: just go black. The portrait layout is the only one. */
+@media (orientation: landscape) {
+  .calc { visibility: hidden; pointer-events: none; }
 }
 
 button {

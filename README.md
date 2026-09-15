@@ -38,7 +38,7 @@ Other things worth knowing:
 - Hold the clock icon while the display shows 0 to clear the force number.
 - If you pick an operator that doesn't work out cleanly in step 3, the sum on screen won't add up, though **=** still shows the force number. The hold-to-peek shows a minus sign or a decimal when that would happen.
 - While digits are still owed, **C** counts as a tap like any other key. After the digits are complete, **C** abandons the force and keeps the number set.
-- The layout stays portrait however the phone is held. The real Calculator would switch to scientific mode sideways, so turn the phone back upright if a spectator rotates it.
+- The screen goes black if the phone is turned sideways, and comes back in portrait. The real Calculator would switch to scientific mode, so keep Rotation Lock on in Control Centre for the closest match.
 - You can preset the number from an iOS Shortcut by opening `https://calcdm.com/?t=1234`. It survives relaunching the app until it's used or cleared.
 
 ## Add to Home Screen
